@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:transportservice/gmap.dart';
+import 'package:transportservice/screens/forget_password1.dart';
+import 'package:transportservice/screens/forget_password2.dart';
+import 'package:transportservice/screens/forget_password3.dart';
+import 'package:transportservice/screens/loginscreen.dart';
+import 'package:transportservice/screens/signupscreen.dart';
 
 void main() => runApp(MyApp());
 
@@ -21,7 +26,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: Gmap(),
+      home: LoginScreen(),
     );
   }
 }

@@ -22,13 +22,13 @@ class _GmapState extends State<Gmap> {
   bool loading = false;
   String _address = "";
   TextEditingController _textController;
-//  Location userLocation;
+  bool _isTextEditing = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _textController = TextEditingController();
+    _textController = TextEditingController(text: _address);
     _textController.addListener(() {
       setState(() {
 
@@ -134,7 +134,7 @@ class _GmapState extends State<Gmap> {
 
                               decoration: InputDecoration(
                                 border: InputBorder.none,
-                                hintText: '$_address',
+                                hintText: 'Meet me at ...',
                               ),
                             ),
                           ),
@@ -188,6 +188,13 @@ class _GmapState extends State<Gmap> {
         ],
       ),
     );
+  }
+
+  Widget _formAddress( String HintText){
+    if( _isTextEditing && HintText=='Meet me at ...'){
+
+    }
+
   }
 
 
