@@ -75,9 +75,9 @@ class _GmapState extends State<Gmap> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Map'),
-      ),
+//      appBar: AppBar(
+//        title: Text('Map'),
+//      ),
       body: _currentPosition == null ? Center(child: CircularProgressIndicator(),) : Stack(
         children: [
           GoogleMap(

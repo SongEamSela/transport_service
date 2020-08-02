@@ -1,11 +1,31 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:transportservice/authentication/auth.dart';
 
 class SignupScreen extends StatefulWidget {
+
+  final Function toggleView;
+  SignupScreen({this.toggleView});
+
   @override
   _SignupScreenState createState() => _SignupScreenState();
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+
+  final AuthService _auth = AuthService();
+  final _formKey = GlobalKey<FormState>();
+
+  final TextEditingController _pass = TextEditingController();
+  final TextEditingController _confirmPass = TextEditingController();
+  bool _autoValidate = false;
+
+  //text field state
+  String _email = "";
+  String _password = "";
+  String _userName = "";
+  String _phoneNumber = "";
+  String error = '';
 
   bool _isHidden = true;
 
@@ -67,63 +87,71 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Widget _form(){
-    return Column(
-      children: <Widget>[
-        _textField("Full Name"),
-        SizedBox(height: 20,),
-        _textField("Phone Number"),
-        SizedBox(height: 20,),
-        _textField("Email"),
-        SizedBox(height: 20,),
-        _textField("Password"),
-        SizedBox(height: 20,),
-        _textField("Confirm Password"),
-        SizedBox(height: 20,),
-        RichText(
-          text: TextSpan(
-              text: 'By signing up you accept the ',
-              style: TextStyle(
-                fontFamily: 'Helvetica Neue',
-                fontSize: 14,
-                color: const Color(0xff524949),
-              ),
-              children: <TextSpan>[
-                TextSpan(
-                  text: 'Term of service',
-                  style: TextStyle(
-                    fontFamily: 'Helvetica Neue',
-                    fontSize: 14,
-                    color: const Color (0xf5296af4),
-                  ),
+    return Form(
+      key: _formKey,
+//      autovalidate: _autoValidate,
+      child: Column(
+        children: <Widget>[
+          _textField("Full Name"),
+          SizedBox(height: 20,),
+          _textField("Phone Number"),
+          SizedBox(height: 20,),
+          _textField("Email"),
+          SizedBox(height: 20,),
+          _textField("Password"),
+          SizedBox(height: 20,),
+          _textField("Confirm Password"),
+          SizedBox(height: 20,),
+          RichText(
+            text: TextSpan(
+                text: 'By signing up you accept the ',
+                style: TextStyle(
+                  fontFamily: 'Helvetica Neue',
+                  fontSize: 14,
+                  color: const Color(0xff524949),
                 ),
-                TextSpan(
-                  text: ' and',
-                  style: TextStyle(
-                    fontFamily: 'Helvetica Neue',
-                    fontSize: 14,
-                    color: const Color(0xff524949),
+                children: <TextSpan>[
+                  TextSpan(
+                    text: 'Term of service',
+                    style: TextStyle(
+                      fontFamily: 'Helvetica Neue',
+                      fontSize: 14,
+                      color: const Color (0xf5296af4),
+                    ),
                   ),
-                ),
-                TextSpan(
-                  text: ' Privacy Policy',
-                  style: TextStyle(
-                    fontFamily: 'Helvetica Neue',
-                    fontSize: 14,
-                    color: const Color (0xf5296af4),
+                  TextSpan(
+                    text: ' and',
+                    style: TextStyle(
+                      fontFamily: 'Helvetica Neue',
+                      fontSize: 14,
+                      color: const Color(0xff524949),
+                    ),
                   ),
-                ),
-              ]
+                  TextSpan(
+                    text: ' Privacy Policy',
+                    style: TextStyle(
+                      fontFamily: 'Helvetica Neue',
+                      fontSize: 14,
+                      color: const Color (0xf5296af4),
+                    ),
+                  ),
+                ]
+            ),
           ),
+          Text(
+            error,
+            style: TextStyle(color: Colors.red, fontSize: 14.0),
+          )
+        ],
 
-
-        ),
-      ],
-
+      ),
     );
   }
 
   Widget _textField( String hintText){
     return TextFormField(
+      controller: hintText == "Password" ? _pass : hintText == "Confirm Password" ? _confirmPass : null,
+
       keyboardType: hintText == "Email" ? TextInputType.emailAddress : hintText == "Phone Number" ? TextInputType.phone : TextInputType.text,
       decoration: InputDecoration(
         border: OutlineInputBorder(
@@ -138,6 +166,23 @@ class _SignupScreenState extends State<SignupScreen> {
         ): null,
       ),
       obscureText: hintText == "Password" ? _isHidden : hintText == "Confirm Password" ? true : false,
+
+      validator: hintText == "Full Name" ? validateName : hintText == "Phone Number" ?
+      validateMobile : hintText == "Email" ? validateEmail : hintText == "Password" ?
+      validatePassword : hintText =="Confirm Password" ? validateConfirmPassword : null,
+
+      onChanged: hintText == "Full Name" ? (value){setState(() {
+        _userName = value;
+      });} :
+      hintText == "Phone Number" ? (value){setState(() {
+        _phoneNumber = value;
+      });} :
+      hintText == "Email" ? (value){setState(() {
+        _email = value;
+      });} :
+      hintText =="Confirm Password" ? (value){setState(() {
+        _password = value;
+      });} : null,
     );
   }
 
@@ -161,7 +206,16 @@ class _SignupScreenState extends State<SignupScreen> {
                 color: Colors.white,
               ),
             ),
-            onPressed: () {},
+            onPressed: () async{
+              if(_formKey.currentState.validate()){
+                dynamic reslut = await _auth.SignUp(_email, _password,_userName,_phoneNumber);
+                if(reslut == null){
+                  setState(() { error = 'Please enter valid email';
+//                  _autoValidate = true;
+                  });
+                }
+              }
+            },
           ),
         ),
         SizedBox(height: 20,),
@@ -181,11 +235,55 @@ class _SignupScreenState extends State<SignupScreen> {
                     fontWeight: FontWeight.w700,
                     color: const Color (0xf5296af4),
                   ),
+                  recognizer: TapGestureRecognizer()..onTap =() {
+                    widget.toggleView();
+                  }
                 ),
               ]
           ),
         ),
       ],
     );
+  }
+
+  String validateName(String value) {
+    if (value.length < 3)
+      return 'Name must be more than 2 charater';
+    else
+      return null;
+  }
+
+  String validateEmail(String value) {
+    Pattern pattern =
+        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+    RegExp regex = new RegExp(pattern);
+    if (!regex.hasMatch(value))
+      return 'Enter Valid Email';
+    else
+      return null;
+  }
+
+  String validateMobile(String value) {
+    if (value.length < 2 )
+      return 'Invalid Mobile Number';
+    else
+      return null;
+  }
+
+  String validatePassword( String value) {
+    if(value.length == 0){
+      return 'Password required !';
+    }
+      return null;
+  }
+
+  String validateConfirmPassword( String value) {
+    if (value.length == 0) {
+      return 'Please enter password again !';
+    }
+    if(value != _pass.text){
+      return 'Password not match';
+    }
+    return null;
   }
 }
